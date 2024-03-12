@@ -51,7 +51,7 @@
 # Learn-Egg.js
 ## MVC框架
 **V view**       视图模板，处理页面
-**C controller** 控制器，负责处理业务逻辑
+**C controller** 控制器，负责处理业务逻辑,**负责解析用户的输入，处理后返回相应的结果**。
 **M model模型（service）**,负责提供数据（查询数据库，请求数据）
 
 **middleware**, <b class="danger">中间件的功能是在匹配路由之前或匹配路由完成这两个阶段执行一些操作。</b> 
