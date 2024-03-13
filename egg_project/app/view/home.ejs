@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2>姓名 <%= user.name %>
+    </h2>
+    <h2>年龄 <%= user.age %>
+    </h2>
+    <ul>
+        <% for( let index=0; index < list.length; index++ ) { %>
+            <li>
+                <%= list[index] %>
+            </li>
+            <% } %>
+
+    </ul>
+    <div><img src="/public/images/1.jpg" alt=""></div>
+</body>
+
+</html>

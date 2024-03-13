@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h3>这是新闻列表页</h3>
+    <ul>
+        <% for( let index=0; index < list.length; index++ ) { %>
+            <li>
+                <a href="/newscontent?aid=<%= list[index]['aid'] %>">
+                    <%= list[index].title %>
+                </a>
+                <%= list[index].dateline %>
+            </li>
+            <% } %>
+
+    </ul>
+
+    <!-- 
+        1.创建index.html页面，配置公共url路径，从service中获取getNewsList数据
+    2.curl方法获取 this.ctx.curl(url)
+    3.返回buffer格式数据转成json，将newsList渲染到index.html页面
+    4.index.html页面上根据点击每条信息获取文章的aid（controller中新建content方法）,
+    同时跳转到newContent.html页面，同时向新页面newContent.html传递aid参数
+    5.在newContent.html页面实现，渲染时根据传过来的aid加载对应详情页面。
+    6.显示新闻日期（extent方法实现） 
+-->
+
+
+    <!-- <span>http://www.phonegap100.com/appapi.php?a=getPortalList&catid=20&page=1</span>
+    <span>http://www.phonegap100.com/appapi.php?a=getPortalArticle&aid=123</span> -->
+</body>
+
+</html>
