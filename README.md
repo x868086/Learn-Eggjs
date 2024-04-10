@@ -68,7 +68,32 @@ app/service/HackerNews.js => ctx.service.hackerNews
 ```
 
 
+## 扩展 extend
+#### 扩展application 
+<b class="danger">这里的this 是 app 对象</b>
+在controller中访问扩展的application方法 `this.app.foo()`
+在application中访问其他扩展的application方法`this.bar()`
+在application中访问其他属性 `this.config.abc`
+config配置项挂载在application对象上
 
+#### 扩展context
+<b class="danger">这里的this 是 ctx对象</b>
+在controller中访问扩展的context方法`this.ctx.foo()`
+
+#### 扩展request,response
+在controller中访问扩展的req,res方法`this.ctx.request.foo()`,`this.ctx.response.bar(0)`
+
+#### 扩展helper
+在helper中this指向helper对象自身，可以调用help对象上的其他方法
+this.ctx指向context对象
+this.app指向application对象
+在controller中访问扩展的helper方法,`this.ctx.helper.foo()`
+在view视图页面中访问自定义的helper方法`helper.foo()`
+helper对象挂载在ctx上 `ctx.helper`
+
+
+## 常用第三方模块
+- 时间日期格式化silly-datetime
 
 ----
 <span class="success">

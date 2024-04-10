@@ -9,7 +9,8 @@
   "dependencies": {
     "egg": "^3.17.5",
     "egg-scripts": "2",
-    "egg-view-ejs": "^3.0.0"
+    "egg-view-ejs": "^3.0.0",
+    "silly-datetime": "^0.1.2"
   },
   "devDependencies": {
     "egg-bin": "6",
