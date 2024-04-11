@@ -19,33 +19,6 @@
             </li>
             <% } %>
     </ul>
-
-    <!--
-        1.创建index.html页面，配置公共url路径，从service中获取getNewsList数据
-        2.curl方法获取 this.ctx.curl(url)
-        3.返回buffer格式数据转成json，将newsList渲染到index.html页面
-        4.index.html页面上根据点击每条信息获取文章的aid（controller中新建content方法）,
-        同时跳转到newContent.html页面，同时向新页面newContent.html传递aid参数
-        5.在newContent.html页面实现，渲染时根据传过来的aid加载对应详情页面。
-        6.显示新闻日期（extent方法实现）
-
-        1.创建中间件middleware，根据客户端访问用户的ip地址ctx.request.ip，屏蔽指定的ip,需要屏蔽的ip地址在config中配置
-        some遍历比对
-        ctx.status=403
-        ctx.message='forbidden'  这里返回的是http响应的状态信息，不是传给客户端页面的数据
-        2.在config中配置中间件 config.middleware = ['forbiddenIp']
-        options是中间件配置项,app是当前应用的Application实例
-        config中增加options配置，config.middlewareName = {ip:'123'}之后，在自定义middleware的函数中获取options参数时得到的是{ip:'123'}
-        module.exports = (options,app) => {
-            return async function(ctx,next){
-                await next()
-            }
-        }
-        -->
-
-
-    <!-- <span>http://www.phonegap100.com/appapi.php?a=getPortalList&catid=20&page=1</span>
-    <span>http://www.phonegap100.com/appapi.php?a=getPortalArticle&aid=123</span> -->
 </body>
 
 </html>

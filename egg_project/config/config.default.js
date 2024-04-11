@@ -14,7 +14,10 @@ module.exports = appInfo => {
   config.keys = appInfo.name + '_1710328773626_9597';
 
   // add your middleware config here
-  config.middleware = [];
+  config.middleware = ['forbidip'];
+  config.forbidip = {
+    forbidips: ['192.168.1.15'],
+  };
 
   // 自定义配置项
   config.api = 'http://www.phonegap100.com/';
