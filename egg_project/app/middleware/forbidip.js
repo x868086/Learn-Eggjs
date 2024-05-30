@@ -9,8 +9,8 @@ module.exports = (options, app) => {
       ctx.message = 'you ip is forbid';
       return false;
     }
-    ctx.status = 200;
-    ctx.body = 'welcome to me app';
+    // ctx.status = 200;
+    // ctx.body = 'welcome to me app';
     await next();
 
   };

@@ -12,6 +12,21 @@
     </h2>
     <h2>年龄 <%= user.age %>
     </h2>
+
+
+    <!-- <form method="POST" action="/add?_csrf=<%=ctx.csrf%>">
+        name: <input type="text" name="name">
+        password: <input type="password" name="age">
+        <button type="submit">提交</button>
+    </form> -->
+
+    <form method="POST" action="/add">
+        name: <input type="text" name="name">
+        password: <input type="password" name="age">
+        <input type="hidden" name="_csrf" value="<%=ctx.csrf%>">
+        <button type="submit">提交</button>
+    </form>
+
     <ul>
         <% for( let index=0; index < list.length; index++ ) { %>
             <li>

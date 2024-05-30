@@ -13,8 +13,14 @@ module.exports = appInfo => {
   // use for cookie sign key, should change to your own and keep security
   config.keys = appInfo.name + '_1710328773626_9597';
 
+  // 添加session的配置项
+  config.session = {
+    key: 'aaaa',
+    encrypt: true,
+  };
+
   // add your middleware config here
-  config.middleware = ['forbidip'];
+  config.middleware = ['auth', 'forbidip'];
   config.forbidip = {
     forbidips: ['192.168.1.15'],
   };
