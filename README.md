@@ -159,7 +159,8 @@ match,ignore支持多种类型的配置方法
 - 正则：当参数为正则时，直接匹配满足正则验证的 url 的路径。
 - 函数：当参数为一个函数时，会将请求上下文传递给这个函数，最终取函数返回的结果（true/false）来判断是否匹配。
 - 可配合egg-path-matching模块简化match,ignore的设置
-```js 
+```js
+// config.default.js 文件中配置 
 module.exports = {
     bodyParser: {
         // 关闭中间件
@@ -168,6 +169,24 @@ module.exports = {
         match: '/static'
     }
 }
+
+// config.default.js 文件中配置 
+module.exports = {
+  middlewareName: {
+    match: '/static',
+  },
+};
+
+// config.default.js 文件中配置 
+module.exports = {
+  middlewareName: {
+    match(ctx) {
+      // 只有 iOS 设备才开启
+      const reg = /iphone|ipad|ipod/i;
+      return reg.test(ctx.get('user-agent'));
+    },
+  },
+};
 ```
 
 #### 5. 使用koa的中间件
@@ -208,6 +227,61 @@ config.abc = {
 }
 ```
 
+## 路由
+
+#### 路由的写法
+```javascript
+router.verb('path-match', app.controller.action);
+router.verb('router-name', 'path-match', app.controller.action); //router-name 是路由命名
+
+router.verb('path-match', middleware1, ..., middlewareN, app.controller.action);
+router.verb('router-name', 'path-match', middleware1, ..., middlewareN, app.controller.action); //router-name 是路由命名
+```
+##### 路由的命名
+在 Egg.js 中，定义路由时的 router-name 参数用于为路由命名。这个名称可以用于生成 URL 或者重定向到该路由。
+例如，你可能会这样定义一个路由：
+```javascript
+router.get('user', '/user/:id', controller.user.info);
+```
+- **生成URL** 在这个例子中，user 就是路由的名称。一旦你给路由命名，你就可以使用 ctx.urlFor(name, params) 或 app.router.url(name, params) 来生成 URL。
+```javascript
+ctx.urlFor('user', { id: 123 }); // 生成 '/user/123'
+app.router.url('user', { id: 123 }); // 生成 '/user/123'
+```
+**这样做的好处是，如果你以后改变了路由的路径，你不需要批量修改生成 URL 的代码，只需要修改路由定义即可。这可以提高代码的可维护性。**
+
+- **重定向到某个路由**，可以这样通过路由名称重定向到这个路由
+```javascript
+ctx.redirect('user', { id: 123 }); // 重定向到 '/user/123'
+```
+
+
+
+#### 路由的重定向
+- 内部重定向 内部重定向通常发生在服务器内部，客户端并不知道这个过程。当一个请求到达服务器时，服务器可能会根据一些条件（如 URL 的路径、查询参数等）决定将这个请求转发到另一个处理程序。这种情况下，客户端的 URL 并不会改变，也不会收到重定向的 HTTP 状态码。
+
+```javascript
+//所有访问 /old-path 的请求都会被重定向到 /new-path，并返回 301 状态码。 301永久重定向，302临时重定向
+app.router.redirect('/old-path', '/new-path', 301)
+```
+
+- 外部重定向 外部重定向是**通过 HTTP 状态码 3xx** 告诉客户端的。当客户端收到这个状态码时，它会根据响应头中的 Location 字段重新发送请求到新的 URL。这种情况下，客户端的 URL 会改变。外部重定向的使用场景包括：永久移动（如将旧的 URL 重定向到新的 URL，通常使用 301 状态码）、临时移动（如将用户重定向到一个临时的 URL，通常使用 302 或 307 状态码）、基于条件的重定向（如根据用户的设备类型将用户重定向到不同的 URL）等。
+<b class="danger">ctx.redirect() 方法会默认设置响应状态码为 302</b> ，并设置响应头的 Location 字段为新的 URL。而在客户端，浏览器会根据 Location 字段指定的 URL 再次发起新的请求。
+
+```javascript
+//可在某个controller中代码中通过this.ctx.redirect()方法重定向
+this.ctx.redirect('/shop') //会默认设置状态码为302。301永久重定向，302临时重定向
+
+
+//永久重定向到/shop
+this.ctx.status=301
+this.ctx.redirect('/shop')
+
+this.ctx.redirect(`http://cn.bing.com/search?q=${q}`)
+```
+
+#### 路由的分组
+通过拆分router.js中的路由到不同的js文件中，实现模块化管理。
 
 
 
@@ -318,6 +392,106 @@ config.session={
 }
 ```
 
+## 定时任务
+- 定时任务中可通过this上下文环境、ctx参数访问service层的方法、访问config.default.js的配置信息
+`ctx.service.news.getList()、this.ctx.service.aa.fn()`
+
+
+```javascript
+//写法1， 扩展类，导出类
+const Subscription = require('egg').Subscription;
+class UpdateCache extends Subscription {
+  // 通过 schedule 属性来设置定时任务的执行间隔等配置
+  static get schedule() {
+    return {
+      interval: '1m', // 1 分钟间隔
+      type: 'all', // 指定所有的 worker 都需要执行
+    };
+  }
+
+  // subscribe 是真正定时任务执行时被运行的函数
+  async subscribe() {
+    const res = await this.ctx.curl('http://www.api.com/cache', { //通过this上下文可访问service层和config.default.js配置文件
+      dataType: 'json',
+    });
+    this.ctx.app.cache = res.data;
+  }
+}
+
+module.exports = UpdateCache;
+
+// 写法2，直接导出对象
+module.exports = {
+  schedule: {
+    interval: '1m', // 1 分钟间隔
+    type: 'all', // 指定所有的 worker 都需要执行
+  },
+  async task(ctx) {
+    const res = await ctx.curl('http://www.api.com/cache', {
+      dataType: 'json',
+    });
+    ctx.app.cache = res.data;
+  },
+};
+
+//写法3，动态配置定时任务，需要访问config.default.js中的配置参数
+module.exports = (app) => {
+  return {
+    schedule: {
+      interval: app.config.cacheTick, //访问config.default.js配置文件
+      type: 'all',
+    },
+    async task(ctx) {
+      const res = await ctx.curl('http://www.api.com/cache', {
+        contentType: 'json',
+      });
+      ctx.app.cache = res.data;
+    },
+  };
+};
+```
+
+
+## RESTful风格的URL
+使用 RESTful 风格的 URL 在 Egg.js 中有以下优势：
+1. 清晰的结构：RESTful 风格的 URL 通常以名词来表示资源，并通过 HTTP 方法（如 GET、POST、PUT、DELETE）来表示对资源的操作。这使得 URL 的结构非常清晰，易于理解。
+2. 易于扩展：由于 RESTful 风格的 URL 是围绕资源来设计的，因此在需要添加新的资源或操作时，只需要在现有的 URL 结构上进行扩展即可，无需修改现有的 URL。
+3. 良好的可维护性：RESTful 风格的 URL 使得每个 URL 都对应一个特定的资源和操作，这使得代码的组织和维护更为方便。
+4. 良好的兼容性：RESTful 风格的 URL 是基于 HTTP 协议设计的，因此它具有良好的兼容性，可以被所有支持 HTTP 协议的平台和设备所使用。
+5. 有利于 SEO：由于 RESTful 风格的 URL 的结构清晰，易于理解，因此它对搜索引擎友好，有利于 SEO。
+总的来说，使用 RESTful 风格的 URL 可以使你的 Egg.js 应用更加清晰、易于维护和扩展，同时也有利于 SEO。
+
+RESTful 风格的 URL 是一种设计风格，它将网络上的内容视为资源，并通过 URL 来表示这些资源。在 RESTful 风格的 URL 中，URL 通常以名词来表示资源，而不是动词。这是因为在 RESTful 架构中，操作的表示不是通过 URL，而是通过 HTTP 方法（如 GET、POST、PUT、DELETE）来实现的。
+例如，假设我们有一个博客系统，我们可能会有以下的 URL 设计：
+- 获取所有博客文章：GET /articles
+- 获取某一篇博客文章：GET /articles/:id
+- 创建新的博客文章：POST /articles
+- 更新某一篇博客文章：PUT /articles/:id
+- 删除某一篇博客文章：DELETE /articles/:id
+在这个例子中，articles 是一个名词，表示博客文章这个资源。我们通过 HTTP 方法来表示对这个资源的操作，例如 GET 表示获取资源，POST 表示创建新的资源，PUT 表示更新资源，DELETE 表示删除资源。
+
+除了 RESTful 风格的 URL，还有一些其他的 URL 设计风格，例如 RPC 风格和 GraphQL 风格。
+1. **RPC 风格 URL**：在 RPC（Remote Procedure Call，远程过程调用）风格的 URL 中，URL 通常会包含动词，表示要执行的操作。例如：
+
+```javascript
+GET /getArticle?id=123
+POST /createArticle
+POST /updateArticle?id=123
+POST /deleteArticle?id=123
+```
+在这个例子中，URL 包含了动词（如 getArticle、createArticle 等），表示要执行的操作。
+
+2. **GraphQL 风格 URL**：GraphQL 是一种查询语言，它允许客户端明确指定它们需要的数据。在 GraphQL 风格的 URL 中，通常只有一个 URL，所有的操作都通过 POST 请求发送到这个 URL。操作的类型和参数都在请求体中指定。例如：
+
+```javascript
+POST /graphql
+
+{
+  "query": "{ article(id: '123') { title, content } }"
+}
+```
+在这个例子中，我们发送了一个 POST 请求到 /graphql，并在请求体中指定了我们要获取的数据（article 资源的 title 和 content 字段）。
+
 
 
 ## 常用第三方模块
@@ -389,14 +563,24 @@ cookies
 2. 只在单个路由/index 中使用auth中间件，**先在config.default.js加载中间件的数组中删除auth中间件**
 3. 在eggjs项目中引入koa-jsonp中间件，先通过npm install 安装koa-jsonp，然后在config.default.js中配置中间件
 4. 在eggjs项目中引入koa-compress中间件
-5. 操作eggjs中中间件的通用配置项。koa-compress的全局启用与关闭，如何在chrome浏览器调试界面查看是否开启了gzip。auth中间件配置match,只有/news生效。配置ignore，只有/news不生效。配置match函数方法，通过函数最终返回true/false结果来判断是否匹指定路由。
+5. 操作eggjs中中间件的通用配置项。koa-compress的全局启用与关闭，如何在chrome浏览器调试界面查看是否开启了gzip。auth中间件配置match,只有/news生效。配置ignore，只有/news不生效。配置match函数方法，对/news，/shop 通过函数最终返回true/false结果来判断是否匹指定路由。
+6. 修改项目文件组织结构，controller下增加admin后台，api前台，web前台页面三块，controller/admin/product.js,controller/admin/article.js,controller/admin/users.js;controller/api/product.js,controller/api/users.js
+7. controller/admin/article.js 中增加index,add,edit,delete 几种方法，同样完善controller/admin/product.js，controller/admin/users.js,完善controller/api/users.js,controller/api/product.js
+8. 在router.js中配置admin,api对应的路由
+9. 增加admin_auth中间件中（中间件配置文件config.default.js中的中间件数组中需要改为驼峰法adminAuth），对/admin路由的页面进行鉴权判断,ctx.session && ctx.session.userinfo 则next,否则跳转到登录页面，在config.default.js中通过函数方式鉴权，对/admin路由判断是否登录
+10. 增加/admin/user 路由，通过authUser中间件判断用户是否登录，没有登录则重定向到/
+11. 设置/shop 路由重定向到/ ，观察控制台
+12. 在routes文件夹下创建admin.js,api.js,index.js三个路由文件，拆分路由分组管理
 
 
-
-
-
-
-
+- lession 6
+1. 配置三个定时任务，打印相关信息到控制台，分三种方式书写
+2. 在定时任务中使用service层的服务，打印由service服务层提供的数据
+3. 每隔5秒读取一次指定网站，返回buffer数据，使用toString()方法获取，传入到cheerio.load(data,{decodedEntities: false})解析,如果解析代码与指定内容不一致则判断为网站被修改或宕机。
+4.使用cheerio，获取页面上某个列表，并一一打印出来。
+var htmlData = (this.ctx.curl('http://www.baidu.com/news')).data.toString()
+var $ = cheerio.load(htmlData,{decodedEntities: false})
+var title = $('title').html()
 
 
 
