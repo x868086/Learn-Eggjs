@@ -497,12 +497,16 @@ POST /graphql
 ## 常用第三方模块
 - silly-datetime
     - 时间日期格式化https://www.npmjs.com/package/silly-datetime
+
+
+## 常用插件
+- egg-mysql
+    - 操作MYSQL数据库
 - egg-path-matching
     - 配合控制中间件match,ignore规则使用的路径匹配/忽略模块，也可单独使用 https://www.npmjs.com/package/egg-path-matching
 
 
 ## 常用中间件
-
 - koa-compress 
     - 开启服务器gzip页面压缩功能，减少页面返回的大小，提升页面加载速度 
 
@@ -510,6 +514,18 @@ POST /graphql
 ## 踩坑
 - ctx.message 是http响应的状态信息，不是传给客户端页面的数据。**如果ctx.message中有中文字符**，egg应用会**提示错误**`Invalid character in statusMessage (code: ERR_INVALID_CHAR)
 `
+
+
+## 前端调试技巧
+启动一个带有调试端口的chrome实例
+
+bash命令 `google-chrome --remote-debugging-port=9222`
+或者右键点击桌面端浏览器，在属性--常规--目标中设置为
+`"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222`
+然后，可以从 http://127.0.0.1:9222/json 或者 http://127.0.0.1:9222/json/version 获取到 browserWSEndpoint 的值
+http://127.0.0.1:9222/json/list 可以获取岛browserID的值
+
+
 ----
 
 

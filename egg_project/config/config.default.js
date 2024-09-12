@@ -20,9 +20,9 @@ module.exports = appInfo => {
   };
 
   // add your middleware config here
-  config.middleware = ['auth', 'forbidip'];
+  config.middleware = [ 'auth', 'forbidip' ];
   config.forbidip = {
-    forbidips: ['192.168.1.15'],
+    forbidips: [ '192.168.1.15' ],
   };
 
   // 自定义配置项
